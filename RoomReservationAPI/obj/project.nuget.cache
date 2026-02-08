@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "GLym74/Sytc=",
+  "success": true,
+  "projectFilePath": "D:\\room-reservation-app\\2026-room-reservation-backend\\RoomReservationAPI\\RoomReservationAPI.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\bagusmukti\\.nuget\\packages\\microsoft.aspnetcore.openapi\\10.0.2\\microsoft.aspnetcore.openapi.10.0.2.nupkg.sha512",
+    "C:\\Users\\bagusmukti\\.nuget\\packages\\microsoft.openapi\\2.0.0\\microsoft.openapi.2.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}
