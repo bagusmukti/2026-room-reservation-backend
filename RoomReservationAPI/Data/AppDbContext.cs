@@ -9,8 +9,9 @@ namespace RoomReservationAPI.Data
         {
         }
 
-        // Mendaftarkan Model Room agar jadi tabel di database
+        // Daftar Model agar jadi tabel di database
         public DbSet<Room> Rooms { get; set; }
+        public DbSet<Reservation> Reservations { get; set; }
 
         // Seeder
         protected override void OnModelCreating(ModelBuilder modelBuilder)
