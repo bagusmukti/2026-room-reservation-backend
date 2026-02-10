@@ -1,26 +1,77 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using RoomReservationAPI.Data;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- 1. DAFTARKAN SERVICE ---
-
-// PENTING: Aktifkan fitur Controller
-builder.Services.AddControllers();
-
-// Konfigurasi OpenAPI/Swagger
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(); 
-
-// Konfigurasi Database PostgreSQL
+// 1. Setup Database
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// 2. Setup Identity (User & Role)
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
+
+// 3. Setup JWT Authentication
+var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]!);
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ValidateIssuer = false,
+        ValidateAudience = false
+    };
+});
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+
+// 4. Setup Swagger
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Room Reservation API", Version = "v1" });
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "Masukkan token JWT dengan format: Bearer {token}",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
+
 var app = builder.Build();
 
-// --- 2. KONFIGURASI PIPELINE ---
+// Pipeline Configuration
 
-// Aktifkan Swagger UI (untuk testing visual)
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -29,7 +80,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// PENTING: Petakan Controller agar bisa diakses
+// Authentication must before Authorization
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();
