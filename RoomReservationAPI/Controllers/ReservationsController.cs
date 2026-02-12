@@ -48,10 +48,10 @@ namespace RoomReservationAPI.Controllers
             {
                 BorrowerName = request.BorrowerName,
                 RoomId = request.RoomId,
-                StartTime = request.StartTime,
-                EndTime = request.EndTime,
+                StartTime = request.StartTime.ToUniversalTime(),
+                EndTime = request.EndTime.ToUniversalTime(),
                 Purpose = request.Purpose,
-                Status = ReservationStatus.Pending // Default Pending (0)
+                Status = ReservationStatus.Pending
             };
 
             _context.Reservations.Add(reservation);
