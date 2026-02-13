@@ -5,6 +5,19 @@ Semua perubahan penting pada proyek ini akan didokumentasikan dalam file ini.
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 dan proyek ini mematuhi [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-02-14
+
+### Added
+- **Authentication**: Sistem Login & Register menggunakan JWT Identity.
+- **Reservation Module**: CRUD Peminjaman Ruangan (User & Admin).
+- **Conflict Validation**: Validasi anti-bentrok jadwal di sisi server.
+- **Admin Privileges**: Hak khusus Admin untuk menghapus data status apapun & Re-evaluasi status.
+- **CORS**: Konfigurasi CORS untuk integrasi Frontend React.
+
+### Changed
+- Update `ReservationsController` untuk mendukung HTTP PUT dan DELETE dengan validasi status.
+- Update `AppDbContext` untuk seeding data User Admin default.
+
 ## [1.0.0] - 2026-02-10
 
 ### Added
