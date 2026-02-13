@@ -36,20 +36,37 @@ namespace RoomReservationAPI.Controllers
             var room = await _context.Rooms.FindAsync(request.RoomId);
             if (room == null) return NotFound("Ruangan tidak ditemukan.");
 
-            // 2. Validasi tanggal
-            if (request.StartTime < DateTime.Now) 
+            // 2. Konversi waktu ke UTC
+            var startUtc = request.StartTime.ToUniversalTime();
+            var endUtc = request.EndTime.ToUniversalTime();
+
+            // 3. Validasi tanggal dasar
+            if (startUtc < DateTime.UtcNow) 
                 return BadRequest("Waktu mulai tidak boleh di masa lalu.");
 
-            if (request.EndTime <= request.StartTime)
+            if (endUtc <= startUtc)
                 return BadRequest("Waktu selesai harus lebih besar dari waktu mulai.");
 
-            // 3. Simpan data
+            // 4. Conflict validation
+            var conflictingReservation = await _context.Reservations
+                .Where(r => r.RoomId == request.RoomId && 
+                            r.Status != ReservationStatus.Rejected && // Kalau Rejected, dianggap kosong/boleh ditimpa
+                            r.StartTime < endUtc && 
+                            r.EndTime > startUtc)
+                .FirstOrDefaultAsync();
+
+            if (conflictingReservation != null)
+            {
+                return BadRequest($"Ruangan {room.Name} sudah dipesan pada jam tersebut oleh {conflictingReservation.BorrowerName}.");
+            }
+
+            // 5. Simpan data (Jika lolos validasi di atas)
             var reservation = new Reservation
             {
                 BorrowerName = request.BorrowerName,
                 RoomId = request.RoomId,
-                StartTime = request.StartTime.ToUniversalTime(),
-                EndTime = request.EndTime.ToUniversalTime(),
+                StartTime = startUtc,
+                EndTime = endUtc,
                 Purpose = request.Purpose,
                 Status = ReservationStatus.Pending
             };
